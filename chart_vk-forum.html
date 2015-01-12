@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simple Data Charts</title>
+<link href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+<script type="text/javascript" src="http://code.highcharts.com/highcharts.js"></script>
+<script type="text/javascript" src="http://code.highcharts.com/modules/exporting.js"></script>
+<script type='text/javascript' src="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+<style>#wrapper{padding-left:0;}#page-wrapper{width:90%;}@media (min-width: 768px) {#page-wrapper{width:100%;}}</style>
+</head>
+<body>
+<div id="wrapper">
+<div id="page-wrapper">
+<div class="row">
+<div class="col-lg-6">
+<div class="panel panel-primary">
+<div class="panel-heading">Panel</div>
+<div class="panel-body">
+<div id="graph1" style="margin: 0 auto"></div>
+</div>
+</div>
+</div>
+<div class="col-lg-6">
+<div class="panel panel-primary">
+<div class="panel-heading">Panel</div>
+<div class="panel-body">
+<div id="graph2" style="margin: 0 auto"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="row">
+<div class="col-lg-6">
+<div class="panel panel-primary">
+<div class="panel-heading">Panel</div>
+<div class="panel-body">
+<div id="graph3" style="margin: 0 auto"></div>
+</div>
+</div>
+</div>
+<div class="col-lg-6">
+<div class="panel panel-primary">
+<div class="panel-heading">Panel</div>
+<div class="panel-body">
+<div id="graph4" style="margin: 0 auto"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="row">
+<div class="col-lg-6">
+<div class="panel panel-primary">
+<div class="panel-heading">Panel</div>
+<div class="panel-body">
+<div id="graph5" style="margin: 0 auto"></div>
+</div>
+</div>
+</div>
+<div class="col-lg-6">
+<div class="panel panel-primary">
+<div class="panel-heading">Panel</div>
+<div class="panel-body">
+<div id="graph6" style="margin: 0 auto"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="row">
+<div class="col-lg-6">
+<div class="panel panel-primary">
+<div class="panel-heading">Panel</div>
+<div class="panel-body">
+<div id="graph7" style="margin: 0 auto"></div>
+</div>
+</div>
+</div>
+<div class="col-lg-6">
+<div class="panel panel-primary">
+<div class="panel-heading">Panel</div>
+<div class="panel-body">
+<div id="graph8" style="margin: 0 auto"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="row">
+<div class="col-lg-6">
+<div class="panel panel-primary">
+<div class="panel-heading">Panel</div>
+<div class="panel-body">
+<div id="graph9" style="margin: 0 auto"></div>
+</div>
+</div>
+</div>
+<div class="col-lg-6">
+<div class="panel panel-primary">
+<div class="panel-heading">Panel</div>
+<div class="panel-body">
+<div id="graph10" style="margin: 0 auto"></div>
+</div>
+</div>
+</div>
+//</div>
+<div class="row">
+<div class="col-lg-6">
+<div class="panel panel-primary">
+<div class="panel-heading">Panel</div>
+<div class="panel-body">
+<div id="graph11" style="margin: 0 auto"></div>
+</div>
+</div>
+</div>
+<div class="row">
+<div class="col-lg-6">
+<div class="panel panel-primary">
+<div class="panel-heading">Panel</div>
+<div class="panel-body">
+<div id="graph12" style="margin: 0 auto"></div>
+</div>
+</div>
+</div>
+<div class="row">
+<div class="col-lg-6">
+<div class="panel panel-primary">
+<div class="panel-heading">Panel</div>
+<div class="panel-body">
+<div id="graph13" style="margin: 0 auto"></div>
+</div>
+</div>
+</div>
+<div class="row">
+<div class="col-lg-6">
+<div class="panel panel-primary">
+<div class="panel-heading">Panel</div>
+<div class="panel-body">
+<div id="graph14" style="margin: 0 auto"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+// ********************* change this line below ***************************
+        var access_token = "90ecbd23ed219668ad7e355e7301f07bc7b29aa7",
+                interval = "1min",
+// ********************* change this line below ***************************
+                local_timezone = 11;
+
+        function get_date_last_24hrs() {
+            var d = new Date();
+            return new Date(d.getTime() - 24 * 3600 * 1000);
+        }
+
+        function get_data_url(id, from, interval, access_token) {
+            return "https://a.ninja.is/rest/v0/device/" + id +
+                    "/data?from=" + from +
+                    "&interval=" + interval +
+                    "&fn=mean&user_access_token=" + access_token;
+        }
+
+
+
+        // type: "line", "area" or "spline"
+        function draw_last_24hrs_graph(type, color, did, title, xlabel, ylabel, ymin, div_id, data_transform) {
+            var from = get_date_last_24hrs().valueOf();
+            var url = get_data_url(did, from, interval, access_token);
+            var min_yvalue = null;
+
+            function data_process(d) {
+                //var localDate = new Date(d.t);
+                var v = d.v;
+                if (data_transform) {
+                    v = data_transform(v);
+                }
+
+                if (min_yvalue === null || min_yvalue > v) {
+                    min_yvalue = v;
+                }
+
+                return [
+                    d.t + 3600 * 1000 * local_timezone,
+                    v
+                ];
+            }
+
+            $.getJSON(url, function (json) {
+                if (json) {
+                    var data = json.data.reverse(); // Raw data is in order new->old.
+                    var values = data.map(function (d) {
+                        return data_process(d);
+                    });
+
+                    if (!!ymin) {
+                        min_yvalue = ymin;
+                    }
+                    //console.log(min_yvalue);
+
+                    // Create the chart with options.
+                    $("#" + div_id).highcharts({
+                        chart: {
+                            type: type, // 'area',
+                            zoomType: 'x',
+                            events: {
+                                load: function () {
+                                    // Set up the updating of the chart each 1 minute (60 second).
+                                    var series = this.series[0];
+                                    var yaxis = this.yAxis[0];
+                                    setInterval(function () {
+                                        $.getJSON(url, function (json) {
+                                            if (json) {
+                                                var data = json.data.reverse();
+
+                                                var values = data.map(function (d) {
+                                                    return data_process(d);
+                                                });
+                                                // Update the series data and redraw.
+                                                yaxis.update({ min: min_yvalue });
+                                                series.setData(values, true);
+                                            }
+                                            min_yvalue = null;
+                                        });
+                                    }, 1000 * 60);
+                                }
+                            }
+                        },
+                        title: {
+                            text: title // 'Temperature'
+                        },
+                        subtitle: {
+                            text: ''
+                        },
+                        xAxis: {
+                            type: 'datetime',
+                            dateTimeLabelFormats: { // don't display the dummy year
+                                hour: '%b %e %H:%M'
+                            },
+                            title: {
+                                text: xlabel // 'Time (UTC)'
+                            },
+                            minRange: 3600000 // 1 hour
+                        },
+                        yAxis: {
+                            title: {
+                                text: ylabel // 'temperature'
+                            },
+                            labels: {
+                                formatter: function () {
+                                    return this.value;
+                                }
+                            },
+                            min: min_yvalue
+                        },
+                        tooltip: {
+                            headerFormat: '{point.x:%e. %b %H:%M}<br>',
+                            pointFormat: '{point.y:.1f}'
+                        },
+                        plotOptions: {
+                            area: {
+                                marker: {
+                                    enabled: true,
+                                    symbol: 'circle',
+                                    radius: 2,
+                                    states: {
+                                        hover: {
+                                            enabled: true
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        credits: {
+                            enabled: false // Hide watermark of HighCharts
+                        },
+                        series: [{
+                            color: color,
+                            data: values
+                        }]
+                    }, function (chart) {
+                        // Hide legend
+                        var legend = chart.legend;
+                        legend.group.hide();
+                        //legend.box.hide();
+                        legend.display = false;
+                        //chart.yAxis[0].update({min: min_yvalue}, true);
+                        min_yvalue = null;
+                    });
+
+                }
+            });
+        }
+
+        function draw_last_24hrs_graph2(type, colors, devices, names, title, xlabel, ylabel, ymin, div_id, data_transform) {
+            var from = get_date_last_24hrs().valueOf();
+            var min_yvalue = null;
+
+            function data_process(d) {
+                var v = d.v;
+                if (data_transform) {
+                    v = data_transform(v);
+                }
+
+                if (min_yvalue === null || min_yvalue > v) {
+                    min_yvalue = v;
+                }
+
+                return [
+                    d.t + 3600 * 1000 * local_timezone,
+                    v
+                ];
+            }
+
+            var count = devices.length;
+            if (count != 2) {
+                alert("Only an array of two devices are supported!");
+                return null;
+            }
+
+            var options = {
+                chart: {
+                    type: type, // 'area',
+                    zoomType: 'x'
+                },
+                title: {
+                    text: title // 'Temperature'
+                },
+                subtitle: {
+                    text: ''
+                },
+                xAxis: {
+                    type: 'datetime',
+                    dateTimeLabelFormats: { // don't display the dummy year
+                        hour: '%b %e %H:%M'
+                    },
+                    title: {
+                        text: xlabel // 'Time (UTC)'
+                    },
+                    minRange: 3600000 // 1 hour
+                },
+                yAxis: {
+                    title: {
+                        text: ylabel // 'temperature'
+                    },
+                    labels: {
+                        formatter: function () {
+                            return this.value;
+                        }
+                    }//,
+                    //min: min_yvalue
+                },
+                tooltip: {
+                    headerFormat: '{point.x:%e. %b %H:%M}<br>',
+                    pointFormat: '{point.y:.1f}'
+                },
+                plotOptions: {
+                    area: {
+                        marker: {
+                            enabled: true,
+                            symbol: 'circle',
+                            radius: 2,
+                            states: {
+                                hover: {
+                                    enabled: true
+                                }
+                            }
+                        }
+                    }
+                },
+                credits: {
+                    enabled: false // Hide watermark of HighCharts
+                }//,
+                //series: [{
+                //    color: color,
+                //    data: values
+                //}]
+            };
+
+            var urls = [];
+            var values = [];
+            for (var i = 0; i < count; i++) {
+                urls.push(get_data_url(devices[i], from, interval, access_token));
+                values.push({
+                    name: names[i],
+                    color: colors[i]
+                });
+            }
+
+            options.chart.events = {
+                load: function () {
+                    // Set up the updating of the chart each 1 minute (60 second).
+                    var mychart = this;
+                    function updateData(idx) {
+                        return $.getJSON(urls[idx], function (json) {
+                            var dx = json.data.reverse();
+                            values[idx].data = dx.map(function (d) {
+                                return data_process(d);
+                            });
+                        }).done(function () {
+                            //console.log(mychart);
+                            mychart.yAxis[0].update({ min: min_yvalue });
+                            mychart.series[idx].setData(values[idx].data, false);
+
+                            if (idx === count - 1) {
+                                mychart.redraw();
+                            }
+                        }).fail(function () {
+                            alert('ERROR');
+                        });
+                    }
+
+                    setInterval(function () {
+                        var data = updateData(0);
+                        for (var i = 1; i < urls.length; i++) {
+                            // Or only the last "i" will be used
+                            (function (i) {
+                                data = data.then(function () {
+                                    return updateData(i);
+                                });
+                            }(i));
+                        }
+                    }, 1000 * 60);
+                }
+            };
+
+            //
+            function getData(idx) {
+                return $.getJSON(urls[idx], function (json) {
+                    var dx = json.data.reverse();
+                    values[idx].data = dx.map(function (d) {
+                        return data_process(d);
+                    });
+                }).done(function () {
+                    if (idx === count - 1) {
+                        options.yAxis.min = min_yvalue;
+                        options.series = values;
+                        $("#" + div_id).highcharts(options);
+                    }
+                }).fail(function () {
+                    alert('ERROR');
+                });
+            }
+
+
+            // Draw the graph first time
+            var data = getData(0);
+            for (var i = 1; i < urls.length; i++) {
+                // Or only the last "i" will be used
+                (function (i) {
+                    data = data.then(function () {
+                        return getData(i);
+                    });
+                }(i));
+            }
+        }
+
+        function draw_last_24hrs_graph2_dual_yaxis(type, colors, devices, names, title, xlabel, ylabels, ymin, div_id, data_transform) {
+            var from = get_date_last_24hrs().valueOf();
+            var min_yvalue = null;
+
+            function data_process(d) {
+                var v = d.v;
+                if (data_transform) {
+                    v = data_transform(v);
+                }
+
+                if (min_yvalue === null || min_yvalue > v) {
+                    min_yvalue = v;
+                }
+
+                return [
+                    d.t + 3600 * 1000 * local_timezone,
+                    v
+                ];
+            }
+
+            var count = devices.length;
+            if (count != 2) {
+                alert("Only an array of two devices are supported!");
+                return null;
+            }
+
+            var options = {
+                chart: {
+                    type: type, // 'area',
+                    zoomType: 'x'
+                },
+                title: {
+                    text: title // 'Temperature'
+                },
+                subtitle: {
+                    text: ''
+                },
+                xAxis: {
+                    type: 'datetime',
+                    dateTimeLabelFormats: { // don't display the dummy year
+                        hour: '%b %e %H:%M'
+                    },
+                    title: {
+                        text: xlabel // 'Time (UTC)'
+                    },
+                    minRange: 3600000 // 1 hour
+                },
+                yAxis: [{ // Primary yAxis (left)
+                    title: {
+                        text: ylabels[0] // 'temperature'
+                    },
+                    labels: {
+                        formatter: function () {
+                            return this.value;
+                        }
+                    }
+                },
+                { // Secondary yAxis (right)
+                    title: {
+                        text: ylabels[1] // 'temperature'
+                    },
+                    labels: {
+                        formatter: function () {
+                            return this.value;
+                        }
+                    },
+                    opposite: true
+                }],  
+                tooltip: {
+                    headerFormat: '{point.x:%e. %b %H:%M}<br>',
+                    pointFormat: '{point.y:.1f}'
+                },
+                plotOptions: {
+                    area: {
+                        marker: {
+                            enabled: true,
+                            symbol: 'circle',
+                            radius: 2,
+                            states: {
+                                hover: {
+                                    enabled: true
+                                }
+                            }
+                        }
+                    }
+                },
+                credits: {
+                    enabled: false // Hide watermark of HighCharts
+                }
+            };
+
+            var urls = [];
+            var values = [];
+            for (var i = 0; i < count; i++) {
+                urls.push(get_data_url(devices[i], from, interval, access_token));
+                values.push({
+                    name: names[i],
+                    color: colors[i],
+                    yAxis: i
+                });
+            }
+
+            options.chart.events = {
+                load: function () {
+                    // Set up the updating of the chart each 1 minute (60 second).
+                    var mychart = this;
+                    function updateData(idx) {
+                        return $.getJSON(urls[idx], function (json) {
+                            var dx = json.data.reverse();
+                            values[idx].data = dx.map(function (d) {
+                                return data_process(d);
+                            });
+                        }).done(function () {
+                            //console.log(mychart);
+                            mychart.yAxis[0].update({ min: min_yvalue });
+                            mychart.series[idx].setData(values[idx].data, false);
+
+                            if (idx === count - 1) {
+                                mychart.redraw();
+                            }
+                        }).fail(function () {
+                            alert('ERROR');
+                        });
+                    }
+
+                    setInterval(function () {
+                        var data = updateData(0);
+                        for (var i = 1; i < urls.length; i++) {
+                            // Or only the last "i" will be used
+                            (function (i) {
+                                data = data.then(function () {
+                                    return updateData(i);
+                                });
+                            }(i));
+                        }
+                    }, 1000 * 60);
+                }
+            };
+
+            //
+            function getData(idx) {
+                return $.getJSON(urls[idx], function (json) {
+                    var dx = json.data.reverse();
+                    values[idx].data = dx.map(function (d) {
+                        return data_process(d);
+                    });
+                }).done(function () {
+                    if (idx === count - 1) {
+                        options.yAxis.min = min_yvalue;
+                        options.series = values;
+                        $("#" + div_id).highcharts(options);
+                    }
+                }).fail(function () {
+                    alert('ERROR');
+                });
+            }
+
+
+            // Draw the graph first time
+            var data = getData(0);
+            for (var i = 1; i < urls.length; i++) {
+                // Or only the last "i" will be used
+                (function (i) {
+                    data = data.then(function () {
+                        return getData(i);
+                    });
+                }(i));
+            }
+        }
+
+
+        // Draw graphs
+        $(function () {
+// ********************* change this line below ***************************  the guid "00000000D4F11EFE_1502_0_31"  both must match of be the same  on a dual line graph. There are also single line graphs
+
+            draw_last_24hrs_graph2("line",["blue", "red"],["00000000D4F11EFE_1502_0_31", "00000000D4F11EFE_1504_0_31"],
+                                         ["Temperature 1 Outside", "Temperature MB"],
+                                         "Temperature Master bedroom vs outside",
+                                         "Time",
+                                         "temperature",
+                                         null,
+                                         "graph1");
+//mb 	00000000D4F11EFE_1504_0_31
+//outsidd temp 00000000D4F11EFE_1502_0_31
+// ac 	00000000D4F11EFE_1402_0_31
+// temp amie 00000000D4F11EFE_0101_0_31
+
+            draw_last_24hrs_graph2_dual_yaxis("line",["red", "cyan"],["00000000D4F11EFE_1504_0_31", "00000000D4F11EFE_1402_0_31"],
+                             ["Temperature 1 Outside", "Roof evap a/c watts("],
+                             "Temperature Masterbedroom vs Watts aircon ",
+                             "Time",
+                             ["temperature", "K Watts * 10"],
+                             null,
+                             "graph2",
+                    function (v) { return v * 1.00; });							 
+							 
+							          //           "Garage (1) wattage", "Time", "Watts        ", null, "graph9",
+//                    function (v) { return v * 10; });
+
+							 
+//							             draw_last_24hrs_graph2_dual_yaxis("line",["red", "blue"],["00000000D4F11EFE_0101_0_31", "00000000D4F11EFE_1502_0_31"],
+  //                           ["Temperature 1 Outside", "Temperature MB"],
+  
+
+              draw_last_24hrs_graph2("line",["blue", "red"],["00000000D4F11EFE_1502_0_31", "00000000D4F11EFE_0101_0_31"],  
+//              draw_last_24hrs_graph2("line",["blue", "red"],["00000000D4F11EFE_0101_0_31", "00000000D4F11EFE_1502_0_31"],
+                                         ["Temperature 1 Outside", "Temperature Amie"],
+  
+                                         "Temperature Amie's bedroom vs temperature outside",
+                                         "Time",
+                                         "temperature",
+                                         null,
+                                         "graph3");
+
+							 
+							 
+							 
+
+//            draw_last_24hrs_graph("line", "red", "00000000D4F11EFE_0101_0_31",
+//                    "Temperature Amie", "Time", "temperature C", null, "graph3");
+//            draw_last_24hrs_graph("line", "red", "00000000D4F11EFE_0102_0_31",
+  //                  "Temperature Roof", "Time", "temperature C", null, "graph4");
+  
+            draw_last_24hrs_graph2("line",["blue", "red"],["00000000D4F11EFE_0102_0_31", "00000000D4F11EFE_1502_0_31"],
+                                         ["Temperature roof", "Temperature Outside"],
+  
+                                         "Temperature roof vs outside",
+                                         "Time",
+                                         "temperature",
+                                         null,
+                                         "graph4");
+
+  
+  
+    draw_last_24hrs_graph2_dual_yaxis("line",["red", "cyan"],["00000000D4F11EFE_0101_0_31", "00000000D4F11EFE_1402_0_31"],
+                             ["Temperature Amie's room", "Roof evaperative  aircon power"],//socket 2
+                             "Temperature Amie's room  vs aircon power",
+                             "Time",
+                             ["temperature", "K Watts * 10"],
+                             null,
+                             "graph5");
+  
+            draw_last_24hrs_graph("line", "green", "00000000D4F11EFE_0903_0_31",                    "Volts garage", "Time", "Volts        ", null, "graph6",                    function (v) { return v * 10; });
+            draw_last_24hrs_graph("line", "green", "00000000D4F11EFE_0902_0_31",
+                    "Volts roof ", "Time", "Volts Roof   ", null, "graph7",
+                    function (v) { return v * 10; });
+
+            draw_last_24hrs_graph("line", "cyan", "00000000D4F11EFE_1402_0_31",
+                    "Roof evap a/c watts(2)", "Time", "Watts        ", null, "graph8",
+                    function (v) { return v * 100; });
+            //draw_last_24hrs_graph("line", "cyan", "00000000D4F11EFE_1402_0_31",
+            //        "Garage (1) wattage", "Time", 	   "Watts        ",240, "graph8",
+            //        function(v) { return v*10; });
+            draw_last_24hrs_graph("line", "cyan", "00000000D4F11EFE_1503_0_31",
+                    "Garage (1) wattage", "Time", "Watts        ", null, "graph9",
+                    function (v) { return v * 10; });
+            draw_last_24hrs_graph("line", "cyan", "00000000D4F11EFE_1403_0_31",
+                    "Garage (2) wattage", "Time", "Watts        ", null, "graph10",
+                    function (v) { return v * 10; });
+            //draw_last_24hrs_graph("line", "cyan", "00000000D4F11EFE_1503_0_31",
+            //        "Garage (1) wattage", "Time", 	   "Watts        ",null, "graph8");
+
+
+            draw_last_24hrs_graph("line", "orange", "00000000D4F11EFE_0102_0_30","Humidity roof %", "Time", "Humidity %        ", null, "graph11");
+            draw_last_24hrs_graph("line", "orange", "00000000D4F11EFE_0101_0_30","Humidity Amie %", "Time", "Humidity %        ", null, "graph12");
+
+            draw_last_24hrs_graph("line", "black", "00000000D4F11EFE_0802_0_30"  ,"Light bbq %"    , "Time", "Light %        "   , null, "graph13");
+            draw_last_24hrs_graph("line", "magenta", "00000000D4F11EFE_0802_0_31",  "bbq pir", "Time", "Light %        ", null, "graph14"); // the null is min value ppz
+
+        });
+    </script>
+</body>
+</html>
